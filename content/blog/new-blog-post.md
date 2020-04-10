@@ -5,11 +5,7 @@ title: NEW BLOG POST!
 description: This is a new post!
 ---
 ```js
-
 function()  {
-
   console.log("booyaaas!")
-
 }
-
 ```
