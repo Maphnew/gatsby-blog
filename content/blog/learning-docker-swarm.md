@@ -15,38 +15,40 @@ description: Docker Swarm 구축하기
 
 ### 1. Swarm node 구성 계획
 
-> 테스트용 Swarm node 구성
+> 테스트용 Swarm node 구성   
 - book server (manager node) / 192.168.101.30
 - samsung notebook (worker node) / 192.168.100.46
 - msi notebook (worker node) / 192.168.100.47   
 
-> 프로덕트용 Swarm node 구성
+> 프로덕트용 Swarm node 구성   
 - app server (manager node) / 192.168.101.80
 - api server (worker node) / 192.168.101.70
 - web server (worker node) / 192.168.101.100   
 
 
-> 아래 두가지의 Error 메시지를 보지 않기 위해 해야 할 일
+> 아래 두가지의 Error 메시지를 보지 않기 위해 해야 할 일   
 ```
 "swarm node is missing network attachments, ip addresses may be exhausted." 
 "failed to allocate gateway (10.0.1.1): Address already in use."
 ```
-##### 1. Hostname 설정
+##### 1. Hostname 설정   
 ```
 $ sudo hostnamectl status
 ```
+
 ```
 $ sudo hostnamectl set-hostname ITS-APISERVER.ITSROOM.COM
 $ sudo hostnamectl set-hostname ITS-APPSERVER.ITSROOM.COM
 $ sudo hostnamectl set-hostname ITS-WEBSERVER.ITSROOM.COM
 ```
+
 ```
 $ sudo reboot
 ```
-##### 2. Docker Swarm Routing Mesh(Ingress network) 설정
-1. Check port open
-- Port 7946 TCP/UDP for container network discovery.
-- Port 4789 UDP for the container ingress network.
+##### 2. Docker Swarm Routing Mesh(Ingress network) 설정   
+1. Check port open   
+- Port 7946 TCP/UDP for container network discovery.   
+- Port 4789 UDP for the container ingress network.   
 
 ```
 # netstat -tnl
@@ -66,9 +68,11 @@ $ sudo reboot
 <https://subicura.com/2017/02/25/container-orchestration-with-docker-swarm.html>
 
 ### 2. Swarm 구성하기
-> docker, docker-compose 설치 필수
+> docker, docker-compose 설치 필수   
 - centos에 docker 설치 https://docs.docker.com/engine/install/centos/
-> Swarm init (Swarm 구축): manager node에서 실행
+
+> Swarm init (Swarm 구축): manager node에서 실행   
+
 ```
 - input
 [root@ITS-WEBSERVER its]# docker swarm init --advertise-addr 192.168.101.80
@@ -86,7 +90,8 @@ To add a worker to this swarm, run the following command:
 - (manager node추가를 위한 join-token 명령어)
 To add a manager to this swarm, run 'docker swarm join-token manager' and follow the instructions.
 ```
-> node list 확인 - node 구축이 잘 되었는지 확인
+
+> node list 확인 - node 구축이 잘 되었는지 확인   
 ```
 - input
 [root@ITS-WEBSERVER its]# docker node ls
@@ -96,7 +101,8 @@ ID                            HOSTNAME                STATUS         ENGINE VERS
 nhyjv7tmnvzwe92fszb238dtm *   localhost.localdomain   Ready          19.03.8
 ```
 
-> manager node 에서 방화벽 설정 
+> manager node 에서 방화벽 설정    
+
 ```
 - input
 [root@ITS-WEBSERVER its]# firewall-cmd --zone=public --permanent --add-port=2377/tcp
@@ -104,7 +110,8 @@ nhyjv7tmnvzwe92fszb238dtm *   localhost.localdomain   Ready          19.03.8
 [root@ITS-WEBSERVER its]# firewall-cmd --zone=public --list-all
 ```
 
-> worker node에서 join command 실행하기
+> worker node에서 join command 실행하기   
+
 ```
 - input
 [root@ITS-WEBSERVER its]# docker swarm join --token SWMTKN-1-1nkn5ygrdfrcjoowntchb8djsh1ufski1g4805y9b8s1odgp3r-1mcdbhcg831w57bvv25u9wdoy 192.168.101.30:2377
@@ -113,15 +120,18 @@ nhyjv7tmnvzwe92fszb238dtm *   localhost.localdomain   Ready          19.03.8
 ```
 - output
 This node joined a swarm as a worker.
-```
-- 방화벽 설정하지 않을 때 발생하는 Error
+``` 
+
+- 방화벽 설정하지 않을 때 발생하는 Error   
+
 ```
 - output
 -> error 
 
 Error response from daemon: rpc error: code = Unavailable desc = all SubConns are in TransientFailure, latest connection error: connection error: desc = "transport: Error while dialing dial tcp 192.168.101.30:2377: connect: no route to host"
 ```
-> manager node에서 node list 확인
+> manager node에서 node list 확인    
+
 ```
 - input
 [root@ITS-WEBSERVER its]# docker node ls
@@ -136,14 +146,17 @@ w197c4yqd6kyyriv3p552upm8 *  ITS-WEBSERVER.ITSROOM.COM       Ready   Active     
 
 ```
 - 80번 서버의 hostname이 이미 webserver로 설정되어 있어 100번 서버의 hostname을 it-uyeg-webserver로 설정함.
-> tip: manager node에서 join 명령어 검색하는 방법
+
+> tip: manager node에서 join 명령어 검색하는 방법   
+
 ```
 [root@ITS-WEBSERVER its]# docker swarm join-token manager
 [root@ITS-WEBSERVER its]# docker swarm join-token worker
 ```
 - Docker는 고 가용성을 구현하기 위해 클러스터 당 3 개 또는 5 개의 관리자 노드를 권장합니다. 스웜 모드 관리자 노드는 Raft를 사용하여 데이터를 공유하므로 홀수의 관리자가 있어야합니다. 관리자 노드의 절반 이상이 사용 가능한 한 웜은 계속 작동 할 수 있습니다.
 
-> tip: Node에서 제거   
+> tip: Node에서 제거     
+
 - Worker node에서 Leave Swarm 명령어 실행
 ```
 [root@ITS-WEBSERVER its]# docker swarm leave
@@ -162,20 +175,24 @@ Node left the swarm.
 # firewall-cmd --reload
 # firewall-cmd --zone=public --list-all
 ```
-> "No such image: ~" 와 같은 Error 발생하는 것을 해결하기 위한 private registry 생성
+> "No such image: ~" 와 같은 Error 발생하는 것을 해결하기 위한 private registry 생성   
+
 1. Docker registry 설치   
 <참조: https://novemberde.github.io/2017/04/09/Docker_Registry_0.html>
 
-> VOLUME 권한을 위한 명령어
+> VOLUME 권한을 위한 명령어   
+
 ```
 chmod a+rw /var/run/docker.sock 
 chmod 777 /home/its/data/docker (저장위치)
 ```
-> registry 이미지를 가져오기 (안해도 상관 없음)
+> registry 이미지를 가져오기 (안해도 상관 없음)   
+
 ```
 $ docker pull registry
 ```
-> registry를 실행하기
+> registry를 실행하기   
+
 ```
 $ docker run -d \
  -p 5000:5000 \
@@ -195,32 +212,41 @@ $ docker run -d \
  -v /home/its/data:/var/lib/registry 
 ```
 #### - Registry 에 image push 하기 pull하기
-> hello-world 이미지가 없으니 docker hub에서 pull하자.
+> hello-world 이미지가 없으니 docker hub에서 pull하자.   
+
 ```
 $ docker pull hello-world
 ```
-> localhost/hello-world 이미지를 만들어보자.
+
+> localhost/hello-world 이미지를 만들어보자.   
+
 ```
 $ docker tag hello-world localhost:5000/hello-world
 ```
-> 이미지 push하기
+
+> 이미지 push하기   
+
 ```
 $ docker push localhost:5000/hello-world
-```
-> 이미지 확인하기
+```   
+
+> 이미지 확인하기   
+
 ```
 $ curl -X GET http://localhost:5000/v2/_catalog
 # 출력 {"repositories":["hello-world"]}
 ```
-> 태그 정보 확인하기
+
+> 태그 정보 확인하기   
+
 ```
 $ curl -X GET http://localhost:5000/v2/hello-world/tags/list
 # 출력 {"name":"hello-world","tags":["latest"]}
 ```
 
-<참조: https://waspro.tistory.com/532>
+<참조: https://waspro.tistory.com/532>   
 
-> "server gave HTTP response to HTTPS client" 라는 메시지가 출력되는 경우 다음과 같이 daemon.json 파일을 수정
+> "server gave HTTP response to HTTPS client" 라는 메시지가 출력되는 경우 다음과 같이 daemon.json 파일을 수정   
 
 ```
 $ vi /etc/docker/daemon.json 
@@ -228,13 +254,14 @@ $ vi /etc/docker/daemon.json
     "insecure-registries": ["192.168.101.70:5000"]
 }
 ```
-> 재실행
+
+> 재실행    
 ```
 $ systemctl daemon-reload
 $ systemctl restart docker
 ```
 
-> docker registry로 부터 image pull 하기
+> docker registry로 부터 image pull 하기   
 ```
 $ docker pull 192.168.101.70:5000/test:latest
 latest: Pulling from 192.168.101.70:5000/test
@@ -247,7 +274,7 @@ Status: Downloaded newer image for 192.168.101.70:5000/test:latest
 
 ```
 
-> Docker registry에서 image 삭제하기
+> Docker registry에서 image 삭제하기   
 
 <참조: https://stackoverflow.com/questions/25436742/how-to-delete-images-from-a-private-docker-registry>
 
@@ -255,7 +282,7 @@ Status: Downloaded newer image for 192.168.101.70:5000/test:latest
 - I set "delete: enabled" value to true in /etc/docker/registry/config.yml file. For this configuration no need to set REGISTRY_STORAGE_DELETE_ENABLED variable
 
 
-> digest 확인을 위한 명령어
+> digest 확인을 위한 명령어   
 ```
 [root@its-apiserver its]# curl -k -I -H Accept:\* http://localhost:5000/v2/test/manifests/latest
 HTTP/1.1 200 OK
@@ -268,7 +295,7 @@ X-Content-Type-Options: nosniff
 Date: Mon, 06 Apr 2020 08:36:04 GMT
 ```
 
-> Delete 명령어 테스트(에러 메시지 발생)
+> Delete 명령어 테스트(에러 메시지 발생)   
 ```
 [root@its-apiserver its]# curl -X DELETE http://localhost:5000/v2/test/manifests/latest
 {"errors":[{"code":"DIGEST_INVALID","message":"provided digest did not match uploaded content"}]}
@@ -279,7 +306,7 @@ Date: Mon, 06 Apr 2020 08:36:04 GMT
 {"errors":[{"code":"MANIFEST_UNKNOWN","message":"manifest unknown"}]}
 ```
 
-> docker registry를 위한 각종 명령어
+> docker registry를 위한 각종 명령어   
 ```
 01. registry 내부의 repository 정보 조회
 
@@ -315,16 +342,18 @@ $ docker exec -it docker-registry registry garbage-collect /etc/docker/registry/
 ```
 
 ### 4. Stack / Service 실행
-> Source download
+> Source download   
 - git clone API_Server
 
 1. Compose build 명령어를 통해 image 생성하기 
+
 ```
 [root@ITS-WEBSERVER its]# docker-compose build
 ```
 
 2. Tagging and Pushing
-- tag
+
+- tag   
 ```
 [root@bookserver API_Server]# docker tag api_server_gateway 192.168.101.70:5000/api_server_gateway
 [root@bookserver API_Server]# docker tag api_server_standalone 192.168.101.70:5000/api_server_standalone
@@ -335,7 +364,7 @@ $ docker exec -it docker-registry registry garbage-collect /etc/docker/registry/
 [root@bookserver API_Server]# docker tag app_server_set 192.168.101.70:5000/app_server_set
 [root@bookserver API_Server]# docker tag app_server_web 192.168.101.70:5000/app_server_web
 ```
-- push
+- push   
 ```
 [root@bookserver API_Server]# docker push 192.168.101.70:5000/api_server_gateway
 [root@bookserver API_Server]# docker push 192.168.101.70:5000/api_server_standalone
@@ -346,19 +375,22 @@ $ docker exec -it docker-registry registry garbage-collect /etc/docker/registry/
 [root@bookserver API_Server]# docker push 192.168.101.70:5000/app_server_set
 [root@bookserver API_Server]# docker push 192.168.101.70:5000/app_server_web
 ```
-- image 유무 확인
+- image 유무 확인   
 ```
 [root@bookserver API_Server]# curl -X GET http://192.168.101.70:5000/v2/_catalog
 {"repositories":["api_server_gateway","api_server_nginx_swarm","api_server_standalone","app_server_indexing","app_server_mobile","app_server_nginx_swarm","app_server_set","app_server_web"]}
 ```
 3. Deploy API Server 
-- Nginx
-- Gateway (bm4server)
-- StandAlone (bm3server)
+
+- Nginx   
+- Gateway (bm4server)   
+- StandAlone (bm3server)   
+
 ```
 - input
 [root@bookserver API_Server]# docker stack deploy --compose-file docker-compose.yml api_server
 ```
+
 ```
 - output
 Ignoring unsupported options: build, restart
@@ -380,8 +412,11 @@ Creating service mariadb1_mariadb
 
 
 ### 5. Deploy를 위한 Compose file 작성하기
+
 1. api server yml파일 비교
-- 기존 compose 파일
+
+- 기존 compose 파일   
+
 ```yml
 version: '3'
 services:
