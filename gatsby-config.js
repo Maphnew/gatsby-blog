@@ -2,11 +2,7 @@ module.exports = {
   siteMetadata: {
     // edit below
     title: `Maphnew's Dev Blog`,
-<<<<<<< HEAD
     author: `Maphnew Sungchan Kim`,
-=======
-    author: `Maphnew`,
->>>>>>> 9b00922021d304f686267a4ab75d4ba3777456e4
     description: `A starter personal blog with styled components, dark mode, and Netlify CMS.`,
     siteUrl: `https://gatsby-starter-blog-demo.netlify.com/`,
     social: {
