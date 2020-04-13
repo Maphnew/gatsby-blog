@@ -271,7 +271,8 @@ $ curl -X GET http://localhost:5000/v2/hello-world/tags/list
 ```shell
 $ vi /etc/docker/daemon.json 
 {
-    "insecure-registries": ["192.168.101.70:5000"]
+    "insecure-registries": ["192.168.101.70:5000"],
+    "experimental":true
 }
 ```
 
