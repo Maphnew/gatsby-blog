@@ -1,7 +1,7 @@
 ---
 path: devOps/AWS-Docker
 date: 2020-04-18T08:23:42.319Z
-title: "Let's Learn AWS and DevOps "
+title: Let's Learn AWS and DevOps!
 description: Go DevOps!
 ---
 
